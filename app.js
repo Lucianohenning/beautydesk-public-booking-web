@@ -59,6 +59,17 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
+function technicalDetail(error) {
+  if (!error) return "";
+  if (error.status === 0) return "Falha de conexão/CORS com a API.";
+  if (error.status) return `API respondeu ${error.status}: ${error.message || "erro"}`;
+  return error.message || "Erro desconhecido.";
+}
+
+function brandLogoHtml(className = "") {
+  return `<img class="brand-logo ${className}" src="./beautydesk-logo.png" alt="BeautyDesk" />`;
+}
+
 function formatPhone(value = "") {
   const digits = onlyDigits(value).slice(0, 11);
   if (digits.length <= 2) return digits;
@@ -109,13 +120,24 @@ function getNextDays(count = 14) {
 }
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      mode: "cors",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+  } catch (error) {
+    const networkError = new Error("Não foi possível conectar com a API. Confira se o domínio deste site foi liberado no CORS da API.");
+    networkError.status = 0;
+    networkError.originalError = error;
+    throw networkError;
+  }
 
   let data = null;
   try {
@@ -135,18 +157,20 @@ async function request(path, options = {}) {
 function loadingView(text = "Carregando...") {
   app.innerHTML = `
     <section class="loading-screen">
+      ${brandLogoHtml("loading-logo")}
       <div class="spinner"></div>
       <p>${escapeHtml(text)}</p>
     </section>
   `;
 }
 
-function stateView({ title, message, actionLabel, onAction }) {
+function stateView({ title, message, detail, actionLabel, onAction }) {
   app.innerHTML = `
     <section class="state-screen panel inner">
-      <div class="brand-mark">B</div>
+      ${brandLogoHtml("state-logo")}
       <h1 class="title-gradient">${escapeHtml(title)}</h1>
       <p class="subtitle">${escapeHtml(message)}</p>
+      ${detail ? `<p class="technical-detail">${escapeHtml(detail)}</p>` : ""}
       ${actionLabel ? `<button class="primary-button" id="state-action">${escapeHtml(actionLabel)}</button>` : ""}
     </section>
   `;
@@ -166,7 +190,8 @@ async function init() {
   loadingView("Carregando espaço BeautyDesk...");
 
   try {
-    state.company = await request(`/public/company/${encodeURIComponent(state.slug)}`);
+    const result = await request(`/public/company/${encodeURIComponent(state.slug)}`);
+    state.company = result?.company || result;
     setDocumentTitle();
     renderHome();
   } catch (error) {
@@ -177,6 +202,7 @@ async function init() {
     stateView({
       title: "Ops",
       message,
+      detail: technicalDetail(error),
       actionLabel: "Tentar novamente",
       onAction: init,
     });
@@ -217,6 +243,7 @@ function renderHome() {
   app.innerHTML = `
     <section class="panel">
       <div class="hero">
+        <div class="top-brand-row">${brandLogoHtml("hero-logo")}</div>
         <div class="logo-stack">
           ${avatarHtml()}
           <div>
