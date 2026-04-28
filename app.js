@@ -204,7 +204,9 @@ async function init() {
   loadingView("Carregando espaço BeautyDesk...");
 
   try {
-    const result = await request(`/public/company/${encodeURIComponent(state.slug)}`);
+    const result = await request(
+      `/public/company/${encodeURIComponent(state.slug)}`,
+    );
     state.company = result?.company || result;
     setDocumentTitle();
     renderHome();
