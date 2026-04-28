@@ -201,12 +201,10 @@ async function init() {
     return;
   }
 
-  loadingView("Carregando espaço BeautyDesk...");
+  loadingView("Preparando seu agendamento...");
 
   try {
-    const result = await request(
-      `/public/company/${encodeURIComponent(state.slug)}`,
-    );
+    const result = await request(`/public/company/${encodeURIComponent(state.slug)}`);
     state.company = result?.company || result;
     setDocumentTitle();
     renderHome();
@@ -280,8 +278,8 @@ function renderHome() {
         </div>
 
         <div class="hero-actions">
-          <button class="primary-button" id="start-booking">Escolher serviço</button>
-          ${whatsapp ? `<a class="secondary-button" href="${whatsapp}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : ""}
+          <button class="primary-button" id="start-booking">Agendar horário</button>
+          ${whatsapp ? `<a class="secondary-button whatsapp-button" href="${whatsapp}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : ""}
         </div>
       </div>
 
@@ -318,7 +316,7 @@ function renderHome() {
         </div>
 
         <section class="section mt-14">
-          <h2 class="section-title">Serviços disponíveis</h2>
+          <div class="section-heading"><div><p class="section-kicker">Escolha seu atendimento</p><h2 class="section-title">Serviços disponíveis</h2></div></div>
           <div class="service-list">
             ${services.length ? services.slice(0, 4).map(serviceCardHtml).join("") : `<div class="status-box warning">Nenhum serviço disponível para agendamento online no momento.</div>`}
           </div>
@@ -385,10 +383,10 @@ function renderServices() {
 
   app.innerHTML = `
     <section class="panel inner">
-      ${renderStepHeader(1, "Escolha seu serviço")}
+      ${renderStepHeader(1, "Escolha o serviço")}
       <div class="summary-card">
         <p class="summary-title">${escapeHtml(state.company.name)}</p>
-        <p class="summary-meta">Selecione o atendimento desejado para ver os horários disponíveis.</p>
+        <p class="summary-meta">Escolha o atendimento e veja os horários livres em seguida.</p>
       </div>
       <div class="service-list">
         ${
@@ -482,14 +480,14 @@ function renderAgenda() {
 
   app.innerHTML = `
     <section class="panel inner">
-      ${renderStepHeader(2, "Escolha seu horário")}
+      ${renderStepHeader(2, "Escolha o horário")}
       <div class="summary-card">
         <p class="summary-title">${escapeHtml(service.name)}</p>
         <p class="summary-meta">${Number(service.durationMin || 0)} min • ${currency(service.priceCents)}</p>
       </div>
 
       <section class="section">
-        <h2 class="section-title">Selecione o dia</h2>
+        <h2 class="section-title">Dia do atendimento</h2>
         <div class="horizontal-scroll">
           ${days
             .map(
@@ -505,7 +503,7 @@ function renderAgenda() {
       </section>
 
       <section class="section mt-14">
-        <h2 class="section-title">Horários disponíveis</h2>
+        <h2 class="section-title">Horários livres</h2>
         ${state.loadingSlots ? `<div class="status-box"><div class="spinner"></div><span> Atualizando horários...</span></div>` : slotsHtml()}
       </section>
 
@@ -612,34 +610,34 @@ function renderClientData(errors = {}) {
 
       <div class="form-grid">
         <div class="field">
-          <label class="label" for="client-name">Seu nome</label>
-          <input class="input" id="client-name" autocomplete="name" placeholder="Digite seu nome completo" value="${escapeHtml(state.client.name)}" />
+          <label class="label" for="client-name">Nome completo</label>
+          <input class="input" id="client-name" autocomplete="name" placeholder="Seu nome completo" value="${escapeHtml(state.client.name)}" />
           ${errors.name ? `<span class="field-error">${escapeHtml(errors.name)}</span>` : ""}
         </div>
         <div class="field">
-          <label class="label" for="client-whatsapp">Seu WhatsApp</label>
+          <label class="label" for="client-whatsapp">WhatsApp</label>
           <input class="input" id="client-whatsapp" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" value="${escapeHtml(formatPhone(state.client.whatsapp))}" />
           ${errors.whatsapp ? `<span class="field-error">${escapeHtml(errors.whatsapp)}</span>` : ""}
         </div>
         <div class="field">
-          <label class="label" for="client-email">E-mail opcional</label>
+          <label class="label" for="client-email">E-mail</label>
           <input class="input" id="client-email" inputmode="email" autocomplete="email" placeholder="seuemail@email.com" value="${escapeHtml(state.client.email)}" />
         </div>
         <div class="field">
-          <label class="label" for="client-notes">Observações opcionais</label>
-          <textarea class="textarea" id="client-notes" placeholder="Alguma observação importante para a profissional?">${escapeHtml(state.client.notes)}</textarea>
+          <label class="label" for="client-notes">Observações</label>
+          <textarea class="textarea" id="client-notes" placeholder="Alguma observação para o atendimento?">${escapeHtml(state.client.notes)}</textarea>
         </div>
 
         <button class="check-row ${state.client.confirmed ? "checked" : ""}" id="confirm-data">
           <span class="checkbox">${state.client.confirmed ? "✓" : ""}</span>
-          <span class="check-copy">Confirmo que meus dados estão corretos e que desejo reservar esse horário.</span>
+          <span class="check-copy">Confirmo que os dados estão corretos e desejo solicitar este horário.</span>
         </button>
 
         ${errors.submit ? `<div class="submit-error">${escapeHtml(errors.submit)}</div>` : ""}
       </div>
 
       <div class="footer-action">
-        <button class="primary-button" id="submit-booking">Confirmar agendamento</button>
+        <button class="primary-button" id="submit-booking">Solicitar agendamento</button>
       </div>
     </section>
   `;
@@ -669,7 +667,7 @@ function renderClientData(errors = {}) {
 function validateClient() {
   const errors = {};
   if (state.client.name.trim().length < 3)
-    errors.name = "Digite seu nome completo.";
+    errors.name = "Seu nome completo.";
   if (onlyDigits(state.client.whatsapp).length < 10)
     errors.whatsapp = "Digite um WhatsApp válido.";
   if (!state.client.confirmed)
@@ -752,11 +750,11 @@ function renderSuccess() {
         <p class="summary-meta">${formatDateBR(state.selectedDate)} • ${escapeHtml(state.selectedTime)}</p>
       </div>
 
-      ${depositRequired ? paymentHtml(payment) : `<div class="status-box success">A profissional receberá sua solicitação e poderá confirmar o atendimento.</div>`}
+      ${depositRequired ? paymentHtml(payment) : `<div class="status-box success">A profissional recebeu sua solicitação. Caso necessário, ela entrará em contato pelo WhatsApp.</div>`}
 
       <div class="hero-actions mt-14">
         ${getWhatsappLink() ? `<a class="secondary-button" href="${getWhatsappLink()}" target="_blank" rel="noopener">Falar com a profissional</a>` : ""}
-        <button class="ghost-button" id="new-booking">Fazer outro agendamento</button>
+        <button class="ghost-button" id="new-booking">Novo agendamento</button>
       </div>
     </section>
   `;
