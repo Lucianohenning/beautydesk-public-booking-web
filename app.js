@@ -204,7 +204,7 @@ async function init() {
   loadingView("Carregando espaço BeautyDesk...");
 
   try {
-    const result = await request(`/public/${encodeURIComponent(state.slug)}`);
+    const result = await request(`/public/company/${encodeURIComponent(state.slug)}`);
     state.company = result?.company || result;
     setDocumentTitle();
     renderHome();
@@ -454,7 +454,7 @@ async function loadSlots(date) {
       date,
     });
     const response = await request(
-      `/public/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
+      `/public/company/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
     );
     state.slots = response.slots || [];
     if (!state.slots.includes(state.selectedTime)) state.selectedTime = "";
@@ -573,7 +573,7 @@ async function validateSelectedSlotAndContinue() {
       date: state.selectedDate,
     });
     const response = await request(
-      `/public/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
+      `/public/company/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
     );
     const freshSlots = response.slots || [];
     state.slots = freshSlots;
@@ -701,7 +701,7 @@ async function submitBooking() {
     };
 
     state.lastResponse = await request(
-      `/public/${encodeURIComponent(state.slug)}/appointments`,
+      `/public/company/${encodeURIComponent(state.slug)}/appointments`,
       {
         method: "POST",
         body: JSON.stringify(payload),
