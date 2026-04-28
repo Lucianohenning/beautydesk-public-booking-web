@@ -36,7 +36,10 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
-  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+  showToast.timer = window.setTimeout(
+    () => toast.classList.remove("show"),
+    2600,
+  );
 }
 
 function currency(cents = 0) {
@@ -62,7 +65,8 @@ function escapeHtml(value = "") {
 function technicalDetail(error) {
   if (!error) return "";
   if (error.status === 0) return "Falha de conexão/CORS com a API.";
-  if (error.status) return `API respondeu ${error.status}: ${error.message || "erro"}`;
+  if (error.status)
+    return `API respondeu ${error.status}: ${error.message || "erro"}`;
   return error.message || "Erro desconhecido.";
 }
 
@@ -103,13 +107,19 @@ function formatDateTimeBR(value) {
 
 function getNextDays(count = 14) {
   const weekdayFmt = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
-  const dayFmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit" });
+  const dayFmt = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
   return Array.from({ length: count }, (_, index) => {
     const date = new Date();
     date.setHours(12, 0, 0, 0);
     date.setDate(date.getDate() + index);
     const iso = date.toISOString().slice(0, 10);
-    const weekday = weekdayFmt.format(date).replace(".", "").replace(/^\w/, (c) => c.toUpperCase());
+    const weekday = weekdayFmt
+      .format(date)
+      .replace(".", "")
+      .replace(/^\w/, (c) => c.toUpperCase());
     return {
       iso,
       weekday,
@@ -133,7 +143,9 @@ async function request(path, options = {}) {
       },
     });
   } catch (error) {
-    const networkError = new Error("Não foi possível conectar com a API. Confira se o domínio deste site foi liberado no CORS da API.");
+    const networkError = new Error(
+      "Não foi possível conectar com a API. Confira se o domínio deste site foi liberado no CORS da API.",
+    );
     networkError.status = 0;
     networkError.originalError = error;
     throw networkError;
@@ -145,7 +157,9 @@ async function request(path, options = {}) {
   } catch (_) {}
 
   if (!response.ok) {
-    const error = new Error(data?.message || data?.error || "Erro na requisição.");
+    const error = new Error(
+      data?.message || data?.error || "Erro na requisição.",
+    );
     error.status = response.status;
     error.data = data;
     throw error;
@@ -190,14 +204,15 @@ async function init() {
   loadingView("Carregando espaço BeautyDesk...");
 
   try {
-    const result = await request(`/public/company/${encodeURIComponent(state.slug)}`);
+    const result = await request(`/public/${encodeURIComponent(state.slug)}`);
     state.company = result?.company || result;
     setDocumentTitle();
     renderHome();
   } catch (error) {
-    const message = error.status === 404
-      ? "Esse link de agendamento não está disponível."
-      : "Não foi possível carregar a página de agendamento agora.";
+    const message =
+      error.status === 404
+        ? "Esse link de agendamento não está disponível."
+        : "Não foi possível carregar a página de agendamento agora.";
 
     stateView({
       title: "Ops",
@@ -214,11 +229,15 @@ function getProfessionalName() {
 }
 
 function getProfessionalSpecialty() {
-  return state.company?.professional?.specialty || "Atendimento com cuidado, organização e sofisticação.";
+  return (
+    state.company?.professional?.specialty ||
+    "Atendimento com cuidado, organização e sofisticação."
+  );
 }
 
 function getWhatsappLink() {
-  const raw = state.company?.professional?.whatsapp || state.company?.whatsapp || "";
+  const raw =
+    state.company?.professional?.whatsapp || state.company?.whatsapp || "";
   const digits = onlyDigits(raw);
   return digits ? `https://wa.me/55${digits}` : "";
 }
@@ -236,9 +255,13 @@ function avatarHtml() {
 
 function renderHome() {
   const company = state.company;
-  const services = (company.services || []).filter((service) => service.isActive !== false);
+  const services = (company.services || []).filter(
+    (service) => service.isActive !== false,
+  );
   const whatsapp = getWhatsappLink();
-  const mapsUrl = company.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(company.address)}` : "";
+  const mapsUrl = company.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(company.address)}`
+    : "";
 
   app.innerHTML = `
     <section class="panel">
@@ -262,7 +285,9 @@ function renderHome() {
 
       <div class="inner">
         <div class="card info-grid">
-          ${company.whatsapp ? `
+          ${
+            company.whatsapp
+              ? `
             <div class="info-row">
               <div class="icon-badge">☎</div>
               <div>
@@ -270,8 +295,12 @@ function renderHome() {
                 <p class="info-value">${escapeHtml(company.whatsapp)}</p>
               </div>
             </div>
-          ` : ""}
-          ${company.address ? `
+          `
+              : ""
+          }
+          ${
+            company.address
+              ? `
             <div class="info-row">
               <div class="icon-badge">⌖</div>
               <div>
@@ -280,7 +309,9 @@ function renderHome() {
               </div>
             </div>
             ${mapsUrl ? `<a class="ghost-button" href="${mapsUrl}" target="_blank" rel="noopener">Abrir no mapa</a>` : ""}
-          ` : ""}
+          `
+              : ""
+          }
           ${!company.whatsapp && !company.address ? `<p class="muted center">Escolha um serviço para ver os horários disponíveis.</p>` : ""}
         </div>
 
@@ -294,19 +325,24 @@ function renderHome() {
     </section>
   `;
 
-  document.getElementById("start-booking")?.addEventListener("click", renderServices);
+  document
+    .getElementById("start-booking")
+    ?.addEventListener("click", renderServices);
   document.querySelectorAll("[data-service-id]").forEach((el) => {
     el.addEventListener("click", () => {
-      const service = services.find((item) => item.id === el.getAttribute("data-service-id"));
+      const service = services.find(
+        (item) => item.id === el.getAttribute("data-service-id"),
+      );
       if (service) selectService(service);
     });
   });
 }
 
 function serviceCardHtml(service) {
-  const deposit = service.requiresDeposit && service.depositPercent
-    ? `<p class="option-meta">Solicita sinal de ${Number(service.depositPercent)}%</p>`
-    : "";
+  const deposit =
+    service.requiresDeposit && service.depositPercent
+      ? `<p class="option-meta">Solicita sinal de ${Number(service.depositPercent)}%</p>`
+      : "";
   return `
     <button class="service-option" data-service-id="${escapeHtml(service.id)}">
       <div class="option-main">
@@ -341,7 +377,9 @@ function bindBack(onBack) {
 }
 
 function renderServices() {
-  const services = (state.company.services || []).filter((service) => service.isActive !== false);
+  const services = (state.company.services || []).filter(
+    (service) => service.isActive !== false,
+  );
 
   app.innerHTML = `
     <section class="panel inner">
@@ -351,9 +389,12 @@ function renderServices() {
         <p class="summary-meta">Selecione o atendimento desejado para ver os horários disponíveis.</p>
       </div>
       <div class="service-list">
-        ${services.length ? services.map((service) => {
-          const active = state.selectedService?.id === service.id;
-          return `
+        ${
+          services.length
+            ? services
+                .map((service) => {
+                  const active = state.selectedService?.id === service.id;
+                  return `
             <button class="service-option ${active ? "active" : ""}" data-service-id="${escapeHtml(service.id)}">
               <div class="option-main">
                 <p class="option-title">${escapeHtml(service.name)}</p>
@@ -367,7 +408,10 @@ function renderServices() {
               </div>
             </button>
           `;
-        }).join("") : `<div class="status-box warning">Nenhum serviço disponível no momento.</div>`}
+                })
+                .join("")
+            : `<div class="status-box warning">Nenhum serviço disponível no momento.</div>`
+        }
       </div>
       <div class="footer-action">
         <button class="primary-button" id="continue-service" ${state.selectedService ? "" : "disabled"}>Continuar</button>
@@ -378,7 +422,9 @@ function renderServices() {
   bindBack(renderHome);
   document.querySelectorAll("[data-service-id]").forEach((el) => {
     el.addEventListener("click", () => {
-      const service = services.find((item) => item.id === el.getAttribute("data-service-id"));
+      const service = services.find(
+        (item) => item.id === el.getAttribute("data-service-id"),
+      );
       if (service) {
         state.selectedService = service;
         state.selectedTime = "";
@@ -403,8 +449,13 @@ async function loadSlots(date) {
   renderAgenda({ keepStatus: true });
 
   try {
-    const query = new URLSearchParams({ serviceId: state.selectedService.id, date });
-    const response = await request(`/public/company/${encodeURIComponent(state.slug)}/availability?${query.toString()}`);
+    const query = new URLSearchParams({
+      serviceId: state.selectedService.id,
+      date,
+    });
+    const response = await request(
+      `/public/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
+    );
     state.slots = response.slots || [];
     if (!state.slots.includes(state.selectedTime)) state.selectedTime = "";
   } catch (error) {
@@ -438,12 +489,16 @@ function renderAgenda() {
       <section class="section">
         <h2 class="section-title">Selecione o dia</h2>
         <div class="horizontal-scroll">
-          ${days.map((day) => `
+          ${days
+            .map(
+              (day) => `
             <button class="day-pill ${state.selectedDate === day.iso ? "active" : ""}" data-date="${day.iso}">
               <span class="day-week">${escapeHtml(day.weekday)}</span>
               <span class="day-date">${escapeHtml(day.date)}</span>
             </button>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
       </section>
 
@@ -475,9 +530,15 @@ function renderAgenda() {
       renderAgenda();
     });
   });
-  document.getElementById("continue-time")?.addEventListener("click", validateSelectedSlotAndContinue);
+  document
+    .getElementById("continue-time")
+    ?.addEventListener("click", validateSelectedSlotAndContinue);
 
-  if (!state.loadingSlots && state.slots.length === 0 && !renderAgenda.loadedForDate) {
+  if (
+    !state.loadingSlots &&
+    state.slots.length === 0 &&
+    !renderAgenda.loadedForDate
+  ) {
     renderAgenda.loadedForDate = state.selectedDate;
     loadSlots(state.selectedDate);
   } else if (renderAgenda.loadedForDate !== state.selectedDate) {
@@ -492,18 +553,28 @@ function slotsHtml() {
   }
   return `
     <div class="slots-grid">
-      ${state.slots.map((slot) => `
+      ${state.slots
+        .map(
+          (slot) => `
         <button class="slot-button ${state.selectedTime === slot ? "active" : ""}" data-time="${escapeHtml(slot)}">${escapeHtml(slot)}</button>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }
 
 async function validateSelectedSlotAndContinue() {
-  if (!state.selectedService || !state.selectedDate || !state.selectedTime) return;
+  if (!state.selectedService || !state.selectedDate || !state.selectedTime)
+    return;
   try {
-    const query = new URLSearchParams({ serviceId: state.selectedService.id, date: state.selectedDate });
-    const response = await request(`/public/company/${encodeURIComponent(state.slug)}/availability?${query.toString()}`);
+    const query = new URLSearchParams({
+      serviceId: state.selectedService.id,
+      date: state.selectedDate,
+    });
+    const response = await request(
+      `/public/${encodeURIComponent(state.slug)}/availability?${query.toString()}`,
+    );
     const freshSlots = response.slots || [];
     state.slots = freshSlots;
     if (!freshSlots.includes(state.selectedTime)) {
@@ -520,9 +591,13 @@ async function validateSelectedSlotAndContinue() {
 
 function renderClientData(errors = {}) {
   const service = state.selectedService;
-  const depositAmount = service?.requiresDeposit && service?.depositPercent
-    ? Math.round((Number(service.priceCents || 0) * Number(service.depositPercent)) / 100)
-    : null;
+  const depositAmount =
+    service?.requiresDeposit && service?.depositPercent
+      ? Math.round(
+          (Number(service.priceCents || 0) * Number(service.depositPercent)) /
+            100,
+        )
+      : null;
 
   app.innerHTML = `
     <section class="panel inner">
@@ -573,25 +648,30 @@ function renderClientData(errors = {}) {
   const email = document.getElementById("client-email");
   const notes = document.getElementById("client-notes");
 
-  name.addEventListener("input", (e) => state.client.name = e.target.value);
+  name.addEventListener("input", (e) => (state.client.name = e.target.value));
   whatsapp.addEventListener("input", (e) => {
     state.client.whatsapp = onlyDigits(e.target.value).slice(0, 11);
     e.target.value = formatPhone(state.client.whatsapp);
   });
-  email.addEventListener("input", (e) => state.client.email = e.target.value);
-  notes.addEventListener("input", (e) => state.client.notes = e.target.value);
+  email.addEventListener("input", (e) => (state.client.email = e.target.value));
+  notes.addEventListener("input", (e) => (state.client.notes = e.target.value));
   document.getElementById("confirm-data")?.addEventListener("click", () => {
     state.client.confirmed = !state.client.confirmed;
     renderClientData(errors);
   });
-  document.getElementById("submit-booking")?.addEventListener("click", submitBooking);
+  document
+    .getElementById("submit-booking")
+    ?.addEventListener("click", submitBooking);
 }
 
 function validateClient() {
   const errors = {};
-  if (state.client.name.trim().length < 3) errors.name = "Digite seu nome completo.";
-  if (onlyDigits(state.client.whatsapp).length < 10) errors.whatsapp = "Digite um WhatsApp válido.";
-  if (!state.client.confirmed) errors.submit = "Confirme seus dados para continuar.";
+  if (state.client.name.trim().length < 3)
+    errors.name = "Digite seu nome completo.";
+  if (onlyDigits(state.client.whatsapp).length < 10)
+    errors.whatsapp = "Digite um WhatsApp válido.";
+  if (!state.client.confirmed)
+    errors.submit = "Confirme seus dados para continuar.";
   return errors;
 }
 
@@ -620,20 +700,28 @@ async function submitBooking() {
       notes: state.client.notes.trim() || undefined,
     };
 
-    state.lastResponse = await request(`/public/company/${encodeURIComponent(state.slug)}/appointments`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
+    state.lastResponse = await request(
+      `/public/${encodeURIComponent(state.slug)}/appointments`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    );
 
     renderSuccess();
   } catch (error) {
     if (error.status === 409) {
       state.selectedTime = "";
       renderAgenda();
-      showToast(error.message || "Esse horário acabou de ser reservado. Escolha outro horário.");
+      showToast(
+        error.message ||
+          "Esse horário acabou de ser reservado. Escolha outro horário.",
+      );
       return;
     }
-    renderClientData({ submit: error.message || "Não foi possível concluir seu agendamento." });
+    renderClientData({
+      submit: error.message || "Não foi possível concluir seu agendamento.",
+    });
   }
 }
 
@@ -642,7 +730,9 @@ function renderSuccess() {
   const payment = response.payment || null;
   const depositRequired = !!payment?.required;
   const service = state.selectedService;
-  const title = depositRequired ? "Horário reservado" : "Agendamento solicitado";
+  const title = depositRequired
+    ? "Horário reservado"
+    : "Agendamento solicitado";
   const subtitle = depositRequired
     ? `${state.client.name.trim()}, finalize o sinal para garantir seu atendimento.`
     : `${state.client.name.trim()}, seu horário foi solicitado com sucesso.`;
@@ -674,12 +764,20 @@ function renderSuccess() {
     state.selectedDate = "";
     state.selectedTime = "";
     state.slots = [];
-    state.client = { name: "", whatsapp: "", email: "", notes: "", confirmed: false };
+    state.client = {
+      name: "",
+      whatsapp: "",
+      email: "",
+      notes: "",
+      confirmed: false,
+    };
     renderHome();
   });
 
   document.querySelectorAll("[data-copy]").forEach((el) => {
-    el.addEventListener("click", () => copyText(el.getAttribute("data-copy") || ""));
+    el.addEventListener("click", () =>
+      copyText(el.getAttribute("data-copy") || ""),
+    );
   });
 }
 
@@ -703,29 +801,41 @@ function paymentHtml(payment) {
       ${payment.receiverName ? `<p class="summary-meta">Recebedor: ${escapeHtml(payment.receiverName)}</p>` : ""}
       ${payment.city ? `<p class="summary-meta">Cidade: ${escapeHtml(payment.city)}</p>` : ""}
 
-      ${payment.pixKeyValue ? `
+      ${
+        payment.pixKeyValue
+          ? `
         <div class="mt-14">
           <span class="info-label">${pixKeyTypeLabel(payment.pixKeyType)}</span>
           <div class="copy-box">${escapeHtml(payment.pixKeyValue)}</div>
           <button class="secondary-button mt-14" data-copy="${escapeHtml(payment.pixKeyValue)}">Copiar chave Pix</button>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
 
-      ${payment.pixCopyPaste ? `
+      ${
+        payment.pixCopyPaste
+          ? `
         <div class="mt-14">
           <span class="info-label">Código Pix copia e cola</span>
           <div class="copy-box">${escapeHtml(payment.pixCopyPaste)}</div>
           <button class="primary-button mt-14" data-copy="${escapeHtml(payment.pixCopyPaste)}">Copiar código Pix</button>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
 
-      ${payment.instructions ? `
+      ${
+        payment.instructions
+          ? `
         <div class="mt-14">
           <span class="info-label">Instruções</span>
           <div class="copy-box">${escapeHtml(payment.instructions)}</div>
           <button class="ghost-button mt-14" data-copy="${escapeHtml(payment.instructions)}">Copiar instruções</button>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
     </div>
   `;
 }
